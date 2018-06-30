@@ -484,6 +484,7 @@
       self._endTimers = {};
       self._queue = [];
       self._playLock = false;
+      self._resumeCallback = null;
 
       // Setup event listeners.
       self._onend = o.onend ? [{fn: o.onend}] : [];
@@ -699,6 +700,10 @@
       if (self._webAudio) {
         Howler._autoResume();
       }
+      // Cancel any previous resume event handlers
+      if(self._resumeCallback) {
+        self.off('resume', self._resumeCallback);
+      }
 
       // Determine how long to play for and where to start playing.
       var seek = Math.max(0, sound._seek > 0 ? sound._seek : self._sprite[sprite][0] / 1000);
@@ -748,6 +753,7 @@
         if (Howler.state === 'running') {
           playWebAudio();
         } else {
+          self._resumeCallback = playWebAudio;
           self.once('resume', playWebAudio);
 
           // Cancel the end timer.
